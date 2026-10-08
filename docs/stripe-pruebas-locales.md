@@ -62,7 +62,7 @@ Este flujo usa Stripe en un entorno de prueba y **Firebase Emulator Suite** en t
    npx expo start --clear
    ```
 
-   Regístrate otra vez en la app: Authentication y Firestore locales empiezan vacíos y no contienen tu cuenta de Firebase en línea. En la pantalla de Suscripción pulsa **Probar suscripción mensual con Stripe** y usa una [tarjeta de prueba](https://docs.stripe.com/testing), como `4242 4242 4242 4242`, fecha futura y cualquier CVC. Al volver a la app, espera unos segundos a que Stripe confirme la compra: el estado cambiará automáticamente. El emulador de Firestore debe mostrar `tier: subscribed`, `isActive: true` y `provider: stripe`; la cuarta receta debe abrirse.
+   Regístrate otra vez en la app y verifica el correo: Authentication y Firestore locales empiezan vacíos y no contienen tu cuenta de Firebase en línea. En la pantalla de Suscripción pulsa **Suscribirte** y usa una [tarjeta de prueba](https://docs.stripe.com/testing), como `4242 4242 4242 4242`, fecha futura y cualquier CVC. Al volver a la app, espera unos segundos a que Stripe confirme la compra: el estado cambiará automáticamente. El emulador de Firestore debe mostrar `tier: subscribed`, `isActive: true` y `provider: stripe`; la cuarta receta debe abrirse.
 
 En Expo Go, el botón de retorno `recetario://` puede no abrir la app. Vuelve manualmente desde el navegador; una compilación de desarrollo sí registra el esquema. Mantén abiertas la terminal de Stripe CLI, la de emuladores y la de Expo durante la prueba.
 

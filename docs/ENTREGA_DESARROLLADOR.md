@@ -84,8 +84,8 @@ Escanea el QR con Expo Go. Si cambia la IP de la computadora en otro momento, re
 ## 5. Verificar que todo funciona
 
 1. En el **navegador del teléfono**, abre `http://IP-DE-ESA-PC:4242/health`. Debe aparecer `"ok":true`. Si no abre, revisa IP, Wi-Fi y firewall antes de intentar pagar.
-2. En la app, inicia sesión con una cuenta existente de Firebase en línea o registra una nueva. En Firestore deben verse `users/{uid}`, `userPreferences/{uid}` y `subscriptions/{uid}`.
-3. En **Suscripción**, pulsa **Probar suscripción mensual con Stripe**. Checkout debe abrir en el navegador. Usa solo una [tarjeta de prueba de Stripe](https://docs.stripe.com/testing), por ejemplo `4242 4242 4242 4242`, fecha futura y cualquier CVC de tres dígitos. No se mueve dinero real.
+2. En la app, inicia sesión con una cuenta de Firebase en línea que tenga el correo verificado. Si registras una nueva, verifica el correo antes de entrar. En Firestore deben verse `users/{uid}`, `userPreferences/{uid}` y `subscriptions/{uid}`.
+3. En **Suscripción**, pulsa **Suscribirte**. Checkout debe abrir en el navegador. Usa solo una [tarjeta de prueba de Stripe](https://docs.stripe.com/testing), por ejemplo `4242 4242 4242 4242`, fecha futura y cualquier CVC de tres dígitos. No se mueve dinero real.
 4. Al terminar, vuelve a la app. Debe decir **Suscripción activa** y permitir abrir una cuarta receta. En Firestore, `subscriptions/{uid}` debe tener `tier: "subscribed"`, `isActive: true` y `provider: "stripe"`.
 
 Si Checkout abre pero la suscripción no cambia, revisa que Stripe CLI siga abierto, que haya recibido los eventos con respuesta `200`, que el `whsec_...` coincida y que la ventana del servidor no muestre errores. Si el botón tarda más de 15 segundos, la ventana del servidor muestra el último paso alcanzado sin registrar tokens ni claves.

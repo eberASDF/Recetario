@@ -2,7 +2,6 @@ import { StyleSheet, Text, View } from 'react-native';
 import { DoodleFoodAccent } from '@/components/doodles';
 import { colors as baseColors, spacing, typography, useThemeColors, useThemeStyles } from '@/theme';
 
-/** Temporary brand composition; replace this component when a final logo asset is available. */
 export function BrandWordmark() {
   const colors = useThemeColors();
   const styles = useThemeStyles(baseStyles);

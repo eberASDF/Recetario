@@ -1,7 +1,6 @@
-import { ArrowSe, Fork, Spoon, Star, WaveRight, Zap } from '@doodle-icons/react-native';
+import { Fork, Spoon, Star, WaveRight, Zap } from '@doodle-icons/react-native';
 import type { ComponentType } from 'react';
 import { View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 
 interface DoodleProps {
   size?: number;
@@ -18,15 +17,7 @@ function IconDoodle({ icon: Icon, size = 28, color, rotation = 0, opacity = 1 }:
 
 export function DoodleStar(props: DoodleProps) { return <IconDoodle icon={Star} {...props} />; }
 export function DoodleSpark(props: DoodleProps) { return <IconDoodle icon={Zap} {...props} />; }
-export function DoodleArrow(props: DoodleProps) { return <IconDoodle icon={ArrowSe} {...props} />; }
 export function DoodleSwirl(props: DoodleProps) { return <IconDoodle icon={WaveRight} {...props} />; }
-
-export function DoodleUnderline({ size = 112, color, rotation = 0, opacity = 1 }: DoodleProps) {
-  return <Svg width={size} height={Math.max(12, size * 0.15)} viewBox="0 0 112 17" style={{ transform: [{ rotate: `${rotation}deg` }], opacity }}>
-    <Path d="M3 12.5C24 5.5 52 6.5 77 7.8c13 .7 23 2.7 32 2" stroke={color} strokeWidth="3.2" strokeLinecap="round" fill="none" />
-    <Path d="M26 15c25-5 55-5 75-3" stroke={color} strokeWidth="1.7" strokeLinecap="round" fill="none" opacity={0.7} />
-  </Svg>;
-}
 
 export function DoodleBurst({ size = 72, color, rotation = 0, opacity = 1 }: DoodleProps) {
   return <View style={{ width: size, height: size, transform: [{ rotate: `${rotation}deg` }], opacity }}>

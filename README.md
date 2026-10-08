@@ -48,28 +48,31 @@ sesión persistida la administra Firebase Auth en AsyncStorage; el proveedor de
 entrada escucha `onAuthStateChanged` y carga el perfil desde `users/{uid}`. La
 contraseña no se guarda en Firestore ni en el almacenamiento propio de la app.
 
-Una sesión restaurada abre el bloqueo biométrico; un login o registro exitoso
-entra directamente. La entrada como invitado cierra una sesión Firebase activa
+Una sesión restaurada abre el bloqueo biométrico; el inicio de sesión abre la app
+solo después de confirmar que el correo está verificado. El registro envía un
+enlace de verificación y cierra la sesión hasta que se complete ese paso. La
+entrada como invitado cierra una sesión Firebase activa
 antes de abrir la app. Desde Inicio, la flecha muestra Bienvenida biométrica si
 hay sesión autenticada y Bienvenida pública si se entró como invitado. El
 desbloqueo usa `expo-local-authentication` y solo continúa si el resultado
 nativo indica éxito. Para probar Face ID en iOS se necesita una compilación de
-desarrollo: Expo Go no lo admite. Si el dispositivo no tiene biometría, en
-Bienvenida se puede entrar sin sesión.
+desarrollo: Expo Go no lo admite. La entrada sin sesión se ofrece únicamente
+en la Bienvenida pública cuando no hay una sesión autenticada activa.
 
-`FREE_RECIPE_LIMIT` fija tres recetas. Para una cuenta autenticada, cada primera apertura agrega su ID a `userPreferences/{uid}.freeRecipeIds` mediante una transacción de Firestore; las recetas elegidas siguen disponibles y el cuarto ID queda bloqueado. `subscriptions/{uid}` se consulta desde el servidor y solo `tier: subscribed` con `isActive: true` da acceso completo. Si `expiresAt` está vencido, el acceso vuelve a los tres IDs gratuitos. En desarrollo, el botón «Simular suscripción» muestra una vista separada que no cambia el acceso. Stripe Checkout mensual puede [probarse con Firestore en línea y Spark](docs/stripe-spark-firestore-online.md), [probarse con emuladores](docs/stripe-pruebas-locales.md) o [desplegarse con Firebase Functions](docs/stripe-pruebas.md) si el proyecto activa Blaze. Para pasar la carpeta a otra persona, usa la [guía de entrega](docs/ENTREGA_DESARROLLADOR.md).
+`FREE_RECIPE_LIMIT` fija tres recetas. Para una cuenta autenticada, cada primera apertura agrega su ID a `userPreferences/{uid}.freeRecipeIds` mediante una transacción de Firestore; las recetas elegidas siguen disponibles y el cuarto ID queda bloqueado. `subscriptions/{uid}` se consulta desde el servidor y solo `tier: subscribed` con `isActive: true` da acceso completo. Si `expiresAt` está vencido, el acceso vuelve a los tres IDs gratuitos. Stripe Checkout mensual puede [probarse con Firestore en línea y Spark](docs/stripe-spark-firestore-online.md), [probarse con emuladores](docs/stripe-pruebas-locales.md) o [desplegarse con Firebase Functions](docs/stripe-pruebas.md) si el proyecto activa Blaze. Para pasar la carpeta a otra persona, usa la [guía de entrega](docs/ENTREGA_DESARROLLADOR.md).
 
 Buscar consulta el repositorio de recetas después de 250 ms sin escritura y descarta respuestas obsoletas. Descubrir escucha el acelerómetro solo mientras la pestaña está activa y la app está en primer plano. La detección elimina la gravedad mediante un filtro, calcula RMS y exige movimiento sostenido para entrar y reposo sostenido para rearmarse. Cada nuevo descubrimiento requiere otra sacudida válida; no hay acción manual para seleccionar otra receta. `FREE_SHAKE_LIMIT` permite tres descubrimientos exitosos, guardados localmente; `SUBSCRIBED` activo no consume ese contador. El comportamiento físico del sensor requiere verificación en dispositivo. Guardadas escucha en tiempo real los IDs de favoritos y recupera sus detalles desde el repositorio de recetas.
 
 El sensor de luz ambiente de `expo-sensors` funciona en Android compatible. La app comprueba su disponibilidad y lo escucha con una frecuencia baja solo en primer plano. Una lectura de hasta 10 lux durante 1,5 segundos activa el tema oscuro; desde allí se requieren al menos 30 lux durante el mismo tiempo para volver al claro. En iOS, web o dispositivos sin ese sensor se usa la apariencia del sistema.
 
-AsyncStorage conserva temporalmente los IDs gratuitos y favoritos de invitados,
-y las preferencias actuales de la interfaz. Las cuentas autenticadas obtienen
+AsyncStorage conserva temporalmente los IDs gratuitos y las preferencias
+actuales de la interfaz. Los invitados pueden explorar, pero deben iniciar
+sesión para guardar recetas. Las cuentas autenticadas obtienen
 su acceso de Firestore, sin usar el antiguo nivel simulado local. La sesión y
 los datos de identidad provienen de Firebase. Las Cloud Functions de Stripe
-verifican los eventos de prueba antes de escribir suscripciones activas. Aún no
-se han desplegado ni probado con Stripe porque falta la cuenta. No hay pagos
-reales ni recetas creadas por usuarios.
+verifican los eventos de prueba antes de escribir suscripciones activas. El
+flujo local se puede probar con Stripe en modo de prueba; las Cloud Functions
+no están desplegadas. No hay pagos reales ni recetas creadas por usuarios.
 
 La foto de Perfil se selecciona con `expo-image-picker` y se copia mediante la
 API actual de `expo-file-system` al directorio interno de documentos antes de
@@ -96,20 +99,12 @@ favoritos, preferencias y suscripciones. El registro escribe los tres
 documentos iniciales y el perfil lee `users/{uid}`. Los favoritos de usuarios
 autenticados se guardan en `userFavorites/{uid}/favorites/{recipeId}` con
 `recipeId`, `provider` y `createdAt` (fecha del servidor). La pantalla Guardadas
-y el botón del detalle escuchan los cambios con `onSnapshot`; invitados siguen
-usando favoritos locales separados. Las recetas se recuperan de su fuente con
-el ID guardado, sin copiar su contenido en Firestore. Para probarlo, guarda una
-receta tras iniciar sesión y comprueba que aparece bajo tu UID en Firestore;
-quita el favorito y comprueba que desaparece. Las reglas de Firestore deben
-permitir leer y escribir esa subcolección solo cuando
-`request.auth.uid == uid`. Hay que integrar este bloque en las reglas actuales
-de la base antes de usar favoritos autenticados:
-
-```firestore
-match /userFavorites/{uid}/favorites/{recipeId} {
-  allow read, create, delete: if request.auth != null && request.auth.uid == uid;
-}
-```
+y el botón del detalle escuchan los cambios con `onSnapshot`. Las recetas se
+recuperan de su fuente con el ID guardado, sin copiar su contenido en Firestore.
+Para probarlo, guarda una receta tras iniciar sesión y comprueba que aparece
+bajo tu UID en Firestore;
+quita el favorito y comprueba que desaparece. `firestore.rules` incluye la
+regla para que solo el propietario acceda a esa subcolección.
 
 Los favoritos guardados antes de esta fase en
 AsyncStorage no se migran automáticamente a la cuenta.
@@ -119,9 +114,7 @@ puede activar ese documento. Las selecciones gratuitas se leen y actualizan en
 `userPreferences/{uid}`. Para probar esta fase con una cuenta, abre tres recetas
 distintas y comprueba sus IDs en `freeRecipeIds`; vuelve a abrir una de ellas y
 verifica que no se duplica. Una cuarta receta debe quedar bloqueada. En otro
-dispositivo con la misma cuenta deben aparecer los mismos tres IDs. Pulsa
-«Simular suscripción» en desarrollo y comprueba que el cuarto ID sigue
-bloqueado y que `subscriptions/{uid}` permanece en `free`.
+dispositivo con la misma cuenta deben aparecer los mismos tres IDs.
 
 Las reglas de Firestore deben limitar cada documento a su propietario y
 mantener `subscriptions/{uid}` sin actualizaciones del cliente. Antes de lanzar

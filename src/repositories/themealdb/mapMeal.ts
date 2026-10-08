@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import type { Recipe } from '@/types';
 
-// Pure mapper only. A future network repository can call it after receiving a meal.
 const mealSchema = z.object({
   idMeal: z.string(),
   strMeal: z.string(),

@@ -41,7 +41,7 @@ No hay claves privadas en la app. El botón de Stripe solo aparece en desarrollo
    npx -y firebase-tools@latest deploy --only functions --project asesorut-7bf6e
    ```
 
-8. En el `.env` de la app, añade `EXPO_PUBLIC_STRIPE_TEST_CHECKOUT_ENABLED=true` y reinicia Metro. Inicia sesión en la app, abre **Suscripción** y pulsa **Probar suscripción mensual con Stripe**. Usa una [tarjeta de prueba de Stripe](https://docs.stripe.com/testing), por ejemplo `4242 4242 4242 4242`, una fecha futura y cualquier CVC. No se cobrará dinero real. Al volver, la pantalla actualizará el estado automáticamente cuando llegue el webhook. Comprueba que `subscriptions/{uid}` tenga `tier: subscribed`, `isActive: true`, `provider: stripe` y `expiresAt` futuro.
+8. En el `.env` de la app, añade `EXPO_PUBLIC_STRIPE_TEST_CHECKOUT_ENABLED=true` y reinicia Metro. Inicia sesión en la app, abre **Suscripción** y pulsa **Suscribirte**. Usa una [tarjeta de prueba de Stripe](https://docs.stripe.com/testing), por ejemplo `4242 4242 4242 4242`, una fecha futura y cualquier CVC. No se cobrará dinero real. Al volver, la pantalla actualizará el estado automáticamente cuando llegue el webhook. Comprueba que `subscriptions/{uid}` tenga `tier: subscribed`, `isActive: true`, `provider: stripe` y `expiresAt` futuro.
 
 En Expo Go, el enlace «Volver a Recetario» de la página final puede no reconocer el esquema `recetario://`. Puedes volver manualmente y actualizar el estado. Para probar ese enlace directamente, usa una compilación de desarrollo con el esquema del `app.json`.
 
