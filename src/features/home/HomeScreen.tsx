@@ -1,8 +1,10 @@
 import { router } from 'expo-router';
-import { ArrowLeft } from '@doodle-icons/react-native';
+import { ArrowLeft, Bell } from '@doodle-icons/react-native';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { BrandWordmark } from '@/components/BrandWordmark';
+import { AppButton } from '@/components/AppButton';
 import { IconButton } from '@/components/IconButton';
 import { ScreenShell } from '@/components/ScreenShell';
 import { ScreenState } from '@/components/ScreenState';
@@ -14,6 +16,7 @@ import { useRecipes } from '@/hooks/useRecipes';
 import { useAccessState } from '@/hooks/useAccessState';
 import { useOpenRecipe } from '@/hooks/useOpenRecipe';
 import { FREE_RECIPE_LIMIT, isRecipeLocked, remainingFreeRecipes } from '@/services/accessRules';
+import { scheduleSavedRecipesNotification } from '@/services/localNotification';
 import { colors as baseColors, useTheme, useThemeColors, useThemeStyles, iconSizes, layout, motion, spacing, typography } from '@/theme';
 
 export default function HomeScreen() {
@@ -25,6 +28,35 @@ export default function HomeScreen() {
   const { recipes, loading, error, reload } = useRecipes();
   const { state: access, loading: accessLoading, error: accessError } = useAccessState();
   const openRecipe = useOpenRecipe(access);
+  const [notificationBusy, setNotificationBusy] = useState(false);
+  const [notificationError, setNotificationError] = useState<string | null>(null);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
+
+  const testNotification = async () => {
+    setNotificationBusy(true);
+    setNotificationError(null);
+    try {
+      const scheduled = await scheduleSavedRecipesNotification();
+      if (!scheduled && mounted.current) {
+        setNotificationError('Activa las notificaciones en los ajustes del teléfono para probar esta función.');
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      console.error(`[Notificación local] ${message}\n${stack ?? ''}`);
+      if (mounted.current) {
+        setNotificationError('No pudimos programar la notificación. Inténtalo de nuevo.');
+      }
+    } finally {
+      if (mounted.current) setNotificationBusy(false);
+    }
+  };
+
   return (
     <ScreenShell>
       <View style={styles.header}>
@@ -44,6 +76,11 @@ export default function HomeScreen() {
           <Text style={styles.heroBody}>Explora sabores, guarda ideas y haz de cada receta un momento tuyo.</Text>
         </View>
       </Animated.View>
+
+      {__DEV__ && <View style={styles.notificationAction}>
+        <AppButton label="Notificación" variant="secondary" icon={<Bell color={colors.textPrimary} size={iconSizes.md} />} onPress={testNotification} loading={notificationBusy} />
+        {notificationError && <Text accessibilityRole="alert" style={styles.notificationError}>{notificationError}</Text>}
+      </View>}
 
       {access && <View style={styles.accessStrip}>
         <Text style={styles.accessLabel}>{access.subscription.tier === 'subscribed' && access.subscription.isActive ? 'CATÁLOGO COMPLETO' : 'TU SELECCIÓN GRATUITA'}</Text>
@@ -80,6 +117,8 @@ const baseStyles = StyleSheet.create({
   heroTitleSmall: { fontSize: 41, lineHeight: 45 },
   heroAccent: { color: baseColors.accentSecondary, fontStyle: 'italic' },
   heroBody: { ...typography.bodySmall, color: '#DCECE2', maxWidth: 260, marginTop: spacing.lg },
+  notificationAction: { marginTop: spacing.lg, gap: spacing.xs },
+  notificationError: { ...typography.bodySmall, color: baseColors.error },
   accessStrip: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: spacing.xs, borderBottomWidth: 1, borderBottomColor: baseColors.border, paddingVertical: spacing.md, marginTop: spacing.lg },
   accessLabel: { ...typography.caption, color: baseColors.textSecondary },
   accessCount: { ...typography.bodySmall, color: baseColors.deepGreen, fontWeight: '700' },
